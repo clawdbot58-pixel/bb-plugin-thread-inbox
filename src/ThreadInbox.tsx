@@ -617,7 +617,7 @@ export function ThreadInbox({
         onSettle={() => lifecycle.settle(thread.id)}
         onSnooze={(until) => lifecycle.snooze(thread.id, until)}
         now={now}
-        childCount={directChildren.length}
+        childThreads={directChildren}
         childrenExpanded={expanded}
         onToggleChildren={
           directChildren.length > 0 ? () => toggleChildren(thread.id) : undefined

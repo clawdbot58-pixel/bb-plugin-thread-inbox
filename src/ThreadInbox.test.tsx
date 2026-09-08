@@ -452,7 +452,7 @@ describe("ThreadInbox", () => {
     expect(childLink.hasAttribute("data-sidebar-thread-id")).toBe(false);
   });
 
-  it("keeps multi-digit child counts fully visible", () => {
+  it("keeps multi-digit child counts visible with a tooltip and accessible label", () => {
     render([
       thread({ id: "parent", title: "Parent", createdAt: 20 }),
       ...Array.from({ length: 12 }, (_, index) =>
@@ -466,12 +466,11 @@ describe("ThreadInbox", () => {
     ]);
 
     const toggle = screen.getByLabelText("Show 12 child threads");
-    const count = within(toggle).getByText("12");
+    expect(within(toggle).getByText("12").classList.contains("whitespace-nowrap")).toBe(true);
+    expect(toggle.getAttribute("title")).toBe("12 child threads");
     const trailing = toggle.parentElement;
 
     expect(toggle.classList.contains("shrink-0")).toBe(true);
-    expect(count.classList.contains("truncate")).toBe(false);
-    expect(count.classList.contains("whitespace-nowrap")).toBe(true);
     expect(trailing?.classList.contains("min-w-12")).toBe(true);
     expect(trailing?.classList.contains("w-12")).toBe(false);
   });

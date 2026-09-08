@@ -20,6 +20,7 @@ import { Icon, type IconName } from "./components/Icon";
 import { cn } from "./lib/utils";
 import { usePortalScopeProps } from "./lib/portal-scope";
 import { RowContextMenu } from "./RowContextMenu";
+import { ChildThreadBadge } from "./ChildThreadBadge";
 import { ProviderGlyph } from "./ProviderGlyph";
 import { STATUS_SLOT_CLASS, StatusOrTime } from "./StatusSlot";
 import { threadDisplayTitle } from "./inbox";
@@ -114,7 +115,7 @@ export function ThreadCard({
   isWoken = false,
   onAcknowledgeWake,
   now,
-  childCount = 0,
+  childThreads = [],
   childrenExpanded = false,
   onToggleChildren,
   reorder,
@@ -135,7 +136,7 @@ export function ThreadCard({
   isWoken?: boolean;
   onAcknowledgeWake?: () => void;
   now: number;
-  childCount?: number;
+  childThreads?: readonly PluginSidebarThread[];
   childrenExpanded?: boolean;
   onToggleChildren?: () => void;
   reorder?: ThreadReorderControls;
@@ -346,28 +347,12 @@ export function ThreadCard({
               data-thread-card-fixed-trailing=""
               className="relative flex min-w-12 shrink-0 items-center justify-end gap-1"
             >
-              {childCount > 0 && onToggleChildren ? (
-                <button
-                  type="button"
-                  aria-label={`${childrenExpanded ? "Hide" : "Show"} ${childCount} child ${childCount === 1 ? "thread" : "threads"}`}
-                  aria-expanded={childrenExpanded}
-                  title={`${childCount} child ${childCount === 1 ? "thread" : "threads"}`}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onToggleChildren();
-                  }}
-                  className="pointer-events-auto relative flex h-4 shrink-0 items-center gap-0.5 rounded px-0.5 tabular-nums text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-                >
-                  <Icon
-                    name="ChevronDown"
-                    className={cn(
-                      "size-3 shrink-0 transition-transform",
-                      !childrenExpanded && "-rotate-90",
-                    )}
-                  />
-                  <span className="whitespace-nowrap">{childCount}</span>
-                </button>
+              {childThreads.length > 0 && onToggleChildren ? (
+                <ChildThreadBadge
+                  threads={childThreads}
+                  expanded={childrenExpanded}
+                  onToggle={onToggleChildren}
+                />
               ) : null}
               <ProviderGlyph providerId={thread.providerId} />
             </span>
