@@ -10,9 +10,9 @@ export default definePluginApp((app) => {
   app.slots.settingsSection({ id: "sidebar-settings", component: SidebarSettings });
   app.slots.experimental_threadList({
     id: "inbox",
-    title: "Thread Inbox (w/ Children)",
+    title: "Inbox Sidebar",
     description:
-      "Stable inbox cards, newest first, with collapsible child threads.",
+      "Reorderable inbox cards with nested children, snooze, and settle controls.",
     component: ThreadInbox,
   });
 

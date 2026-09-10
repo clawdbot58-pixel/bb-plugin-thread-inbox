@@ -20,11 +20,39 @@ export function sortByCreatedAtDescending<
   );
 }
 
-export function threadDisplayTitle(thread: PluginSidebarThread): string {
+interface DisplayThread extends PluginSidebarThread {
+  displayTitle?: string;
+}
+
+export function threadDisplayTitle(thread: DisplayThread): string {
+  return thread.displayTitle ?? threadEditableTitle(thread);
+}
+
+export function threadEditableTitle(thread: PluginSidebarThread): string {
   const title = thread.title?.trim();
   if (title) return title;
   const fallback = thread.titleFallback?.trim();
   return fallback ? fallback : "Untitled thread";
+}
+
+/** Resolve presentation before filtering, so mentions can name other projects.
+ * Keep persisted titles intact for rename, and expand only one level to avoid
+ * cycles between threads whose initial prompts mention one another.
+ */
+export function resolveThreadDisplayTitles(
+  threads: readonly PluginSidebarThread[],
+): DisplayThread[] {
+  const byId = new Map(threads.map((thread) => [thread.id, thread]));
+  return threads.map((thread) => ({
+    ...thread,
+    displayTitle: threadEditableTitle(thread).replace(
+      /@thread:(thr_[a-zA-Z0-9_-]+)/g,
+      (token, id: string) => {
+        const referenced = byId.get(id);
+        return referenced ? `@${threadEditableTitle(referenced)}` : token;
+      },
+    ),
+  }));
 }
 
 function threadTitleMatches(thread: PluginSidebarThread, normalized: string) {

@@ -4,7 +4,7 @@ import {
   type PluginSidebarThread,
 } from "@get-bb/plugin-sdk/app";
 import { cn } from "./lib/utils";
-import { threadDisplayTitle } from "./inbox";
+import { threadDisplayTitle, threadEditableTitle } from "./inbox";
 
 export function InlineThreadTitle({
   thread,
@@ -25,14 +25,15 @@ export function InlineThreadTitle({
 }) {
   const actions = useSidebarThreadActions();
   const title = threadDisplayTitle(thread);
-  const [draft, setDraft] = useState(title);
+  const editableTitle = threadEditableTitle(thread);
+  const [draft, setDraft] = useState(editableTitle);
   const finished = useRef(false);
 
   useEffect(() => {
     if (!editing) return;
-    setDraft(title);
+    setDraft(editableTitle);
     finished.current = false;
-  }, [editing, title]);
+  }, [editing, editableTitle]);
 
   if (!editing) {
     return (
@@ -56,7 +57,7 @@ export function InlineThreadTitle({
     finished.current = true;
     onEditingChange(false);
     const next = draft.trim();
-    if (save && next && next !== title) void actions.rename(thread.id, next);
+    if (save && next && next !== editableTitle) void actions.rename(thread.id, next);
   };
   return (
     <input autoFocus aria-label={`Rename ${title}`} value={draft}

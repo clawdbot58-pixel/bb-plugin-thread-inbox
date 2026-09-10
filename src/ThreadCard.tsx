@@ -26,6 +26,7 @@ import { STATUS_SLOT_CLASS, StatusOrTime } from "./StatusSlot";
 import { threadDisplayTitle } from "./inbox";
 import { resolveSnoozePresets } from "./lifecycle";
 import { InlineThreadTitle } from "./InlineThreadTitle";
+import { SETTLE_SHORTCUT, SETTLE_SHORTCUT_LABEL } from "./settle-shortcut";
 
 export interface ThreadReorderControls {
   disabled: boolean;
@@ -153,6 +154,10 @@ export function ThreadCard({
   // Otherwise moving the pointer into the menu makes the trigger disappear.
   const [snoozeMenuOpen, setSnoozeMenuOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const swipe = useRef<{ x: number; y: number; offset: number; horizontal: boolean } | null>(null);
+  const suppressSwipeClickUntil = useRef(0);
+
   const rowLinkRef = useRef<HTMLAnchorElement | null>(null);
   const pendingTitleNavigate = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
@@ -178,6 +183,7 @@ export function ThreadCard({
     if (event.button === 0 && event.currentTarget !== rowLinkRef.current) {
       rowLinkRef.current?.focus({ preventScroll: true });
     }
+    if (event.pointerType === "touch") return;
     handleSplitPointerDown(event);
     reorder?.onPointerDown(event);
   };
@@ -223,22 +229,87 @@ export function ThreadCard({
 
   return (
     <li
+      // The mobile shell otherwise claims horizontal drags to dismiss itself.
+      data-no-sidebar-swipe={canPark ? "" : undefined}
       className={cn(
-        "list-none transition-opacity duration-150 ease-out motion-reduce:transition-none",
+        "relative isolate list-none overflow-hidden rounded-md transition-opacity duration-150 ease-out motion-reduce:transition-none",
         reorder?.isDragging && "opacity-50",
       )}
+      style={{ touchAction: "pan-y" }}
+      onClickCapture={(event) => {
+        if (Date.now() < suppressSwipeClickUntil.current && event.currentTarget.contains(event.target as Node)) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
+      onTouchStart={(event) => {
+        if (!canPark || isRenaming || snoozeMenuOpen || event.touches.length !== 1) return;
+        if ((event.target as HTMLElement).closest("[data-thread-card-id]")?.getAttribute("data-thread-card-id") !== thread.id) return;
+        // The sidebar itself is a dialog; excluding dialog ancestors disables
+        // every row gesture on mobile. The card-id check excludes our portals.
+        if ((event.target as HTMLElement).closest("button, input")) return;
+        const touch = event.touches[0];
+        swipe.current = { x: touch.clientX, y: touch.clientY, offset: 0, horizontal: false };
+      }}
+      onTouchMove={(event) => {
+        const current = swipe.current;
+        if (!current) return;
+        if (event.touches.length !== 1) {
+          swipe.current = null;
+          setSwipeOffset(0);
+          return;
+        }
+        const dx = event.touches[0].clientX - current.x;
+        const dy = event.touches[0].clientY - current.y;
+        if (!current.horizontal) {
+          if (Math.abs(dy) > 8 && Math.abs(dy) >= Math.abs(dx)) {
+            swipe.current = null;
+            return;
+          }
+          if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+          current.horizontal = true;
+        }
+        current.offset = Math.max(-110, Math.min(110, dx));
+        setSwipeOffset(current.offset);
+      }}
+      onTouchEnd={() => {
+        const current = swipe.current;
+        swipe.current = null;
+        setSwipeOffset(0);
+        if (!current?.horizontal) return;
+        suppressSwipeClickUntil.current = Date.now() + 500;
+        if (!canPark) return;
+        if (current.offset <= -72) onSettle();
+        else if (current.offset >= 72) setSnoozeMenuOpen(true);
+      }}
+      onTouchCancel={() => {
+        swipe.current = null;
+        setSwipeOffset(0);
+      }}
     >
+      {swipeOffset !== 0 ? (
+        <div aria-hidden="true" className={cn(
+          "pointer-events-none absolute inset-0 flex items-center gap-1.5 px-3 text-xs font-medium",
+          swipeOffset < 0 ? "justify-end bg-success/20 text-success" : "bg-sidebar-accent text-foreground",
+          Math.abs(swipeOffset) < 72 && "opacity-50",
+        )}>
+          <Icon name={swipeOffset < 0 ? "Check" : "Clock"} className="size-4" />
+          {swipeOffset < 0 ? "Settle" : "Snooze"}
+        </div>
+      ) : null}
       <RowContextMenu
         thread={thread}
         onRename={() => setIsRenaming(true)}
         onOpen={isWoken ? onAcknowledgeWake : undefined}
       >
         <div
+          style={{ transform: `translateX(${swipeOffset}px)` }}
           data-thread-card-root=""
           data-thread-card-id={thread.id}
           onKeyDownCapture={(event) => reorder?.onKeyDown(event)}
           className={cn(
             "group/card relative rounded-md px-2.5 py-2 transition-colors",
+            swipeOffset !== 0 && "bg-sidebar",
             isActive ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60",
             isSelected && "ring-1 ring-inset ring-ring bg-sidebar-accent/70",
             !isActive && layout !== null && "bg-sidebar-accent/30",
@@ -300,7 +371,7 @@ export function ThreadCard({
                   onOpenChange={setSnoozeMenuOpen}
                   onSnooze={onSnooze}
                 />
-                <ParkButton label="Settle thread" icon="Check" onActivate={onSettle} />
+                <ParkButton label="Settle thread" icon="Check" onActivate={onSettle} shortcut={isActive} />
               </span>
             ) : null}
             {isWoken ? (
@@ -638,7 +709,7 @@ function SnoozeMenu({
           align="end"
           sideOffset={4}
           aria-label="Snooze thread"
-          className="z-50 w-24 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none"
+          className="z-50 w-24 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none [@media(hover:none)]:w-36"
           onClick={(event) => event.stopPropagation()}
         >
           {presets.map((preset) => (
@@ -651,7 +722,7 @@ function SnoozeMenu({
                 onOpenChange(false);
                 onSnooze(preset.snoozedUntil);
               }}
-              className="flex w-full cursor-pointer items-center rounded-md px-1.5 py-1 text-left text-xs text-foreground outline-none hover:bg-accent focus-visible:bg-accent"
+              className="flex w-full cursor-pointer items-center rounded-md px-1.5 py-1 text-left text-xs text-foreground outline-none hover:bg-accent focus-visible:bg-accent [@media(hover:none)]:min-h-11"
             >
               <span className="min-w-0 flex-1">{preset.label}</span>
             </button>
@@ -667,15 +738,19 @@ function ParkButton({
   label,
   icon,
   onActivate,
+  shortcut = false,
 }: {
   label: string;
   icon: Extract<IconName, "Clock" | "Check">;
   onActivate: () => void;
+  shortcut?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
+      aria-keyshortcuts={shortcut ? SETTLE_SHORTCUT : undefined}
+      title={shortcut ? `${label} (${SETTLE_SHORTCUT_LABEL})` : label}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();

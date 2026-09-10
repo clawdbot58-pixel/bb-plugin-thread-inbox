@@ -1,8 +1,8 @@
 {
   "name": "bb-plugin-thread-inbox",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
-  "description": "A stable inbox sidebar with collapsible nested child threads.",
+  "description": "Keep threads in order with nested children, snooze and settle controls, and Git status at a glance.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,8 +14,8 @@
     "bbPluginSdk": ">=0.4.3"
   },
   "bb": {
-    "name": "Thread Inbox (w/ Children)",
-    "description": "Stable inbox ordering with collapsible nested child threads.",
+    "name": "Inbox Sidebar",
+    "description": "Keep threads in order with nested children, snooze and settle controls, and Git status at a glance.",
     "branding": {
       "icon": "PanelLeft"
     },
