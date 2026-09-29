@@ -102,9 +102,9 @@ describe("settle active thread shortcut", () => {
   }
   it("settles only the active thread and exposes metadata only on its action", async () => {
     const rendered = setup([thread({ id: "other" }), thread({ id: "active" })]);
-    const buttons = screen.getAllByRole("button", { name: "Settle thread" });
+    const buttons = screen.getAllByRole("button", { name: "Archive thread" });
     expect(buttons.filter((button) => button.getAttribute("aria-keyshortcuts") === "Control+Alt+S")).toHaveLength(1);
-    expect(buttons.find((button) => button.hasAttribute("aria-keyshortcuts"))?.title).toBe("Settle thread (Ctrl+Alt+S)");
+    expect(buttons.find((button) => button.hasAttribute("aria-keyshortcuts"))?.title).toBe("Archive thread (Ctrl+Alt+S)");
     press();
     await waitFor(() => expect(rendered.inspection.rpcCalls.filter((call) => call.method === "settle")).toEqual([{ method: "settle", input: { threadId: "active" } }]));
   });
@@ -129,7 +129,7 @@ describe("settle active thread shortcut", () => {
   });
   it.each(["settled", "snoozed"])("leaves the %s shelf alone", async (shelf) => {
     const rendered = setup([thread({ id: "active" })], "active", undefined, [{ threadId: "active", settledAt: shelf === "settled" ? 200 : null, snoozedAt: shelf === "snoozed" ? 200 : null, snoozedUntil: shelf === "snoozed" ? Date.now() + 60_000 : null }]);
-    await screen.findByRole("button", { name: new RegExp(shelf === "settled" ? "Settled" : "Snoozed") });
+    await screen.findByRole("button", { name: new RegExp(shelf === "settled" ? "Archived" : "Snoozed") });
     press();
     expect(rendered.inspection.rpcCalls.some((call) => call.method === "settle")).toBe(false);
   });
@@ -292,7 +292,7 @@ describe("ThreadInbox", () => {
     });
     fireEvent.click(screen.getByRole("link", { name: "Bulk target" }), { altKey: true });
     expect(screen.getByRole("link", { name: "Bulk target, selected" })).toBeDefined();
-    fireEvent.click(screen.getByRole("button", { name: "Settle" }));
+    fireEvent.click(screen.getByRole("button", { name: "Archive in place" }));
     expect(screen.getByRole("toolbar", { name: "1 threads selected" })).toBeDefined();
     resolveSettle({ ok: true });
     await waitFor(() => expect(screen.queryByRole("toolbar", { name: "1 threads selected" })).toBeNull());
@@ -677,8 +677,8 @@ describe("parking threads", () => {
       },
     });
     // The shelf renders once the lifecycle read resolves.
-    const shelf = await screen.findByRole("region", { name: "Settled" });
-    expect(within(shelf).getByText(/Settled \(1\)/)).toBeDefined();
+    const shelf = await screen.findByRole("region", { name: "Archived" });
+    expect(within(shelf).getByText(/Archived \(1\)/)).toBeDefined();
     // Collapsed by default: parked work is out of the way, never gone.
     expect(screen.queryByText("Finished work")).toBeNull();
     fireEvent.click(within(shelf).getByRole("button"));
@@ -720,15 +720,15 @@ describe("parking threads", () => {
       },
     });
     expect(await screen.findByText("Still running")).toBeDefined();
-    expect(screen.queryByRole("region", { name: "Settled" })).toBeNull();
-    expect(screen.queryByLabelText("Settle thread")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Archived" })).toBeNull();
+    expect(screen.queryByLabelText("Archive thread")).toBeNull();
   });
 
   it("offers settle and snooze on a parkable thread", async () => {
     render([thread({ id: "thr_park", title: "Quiet" })]);
     // Rendered (not merely accepted as props): a card whose park controls
     // never mount leaves the whole feature unreachable.
-    expect(await screen.findByLabelText("Settle thread")).toBeDefined();
+    expect(await screen.findByLabelText("Archive thread")).toBeDefined();
     expect(screen.getByRole("button", { name: "Snooze thread" })).toBeDefined();
   });
 
@@ -788,7 +788,7 @@ describe("parking threads", () => {
         },
       },
     });
-    fireEvent.click(await screen.findByLabelText("Settle thread"));
+    fireEvent.click(await screen.findByLabelText("Archive thread"));
     await waitFor(() => expect(settled).toBe("thr_park"));
   });
 
@@ -970,7 +970,7 @@ describe("card metadata", () => {
     fireEvent.pointerDown(
       await screen.findByRole("button", { name: "Snooze thread" }),
     );
-    fireEvent.pointerDown(screen.getByLabelText("Settle thread"));
+    fireEvent.pointerDown(screen.getByLabelText("Archive thread"));
     expect(rendered.sidebarActionCalls).not.toContainEqual({
       method: "open",
       threadId: "thr_controls",

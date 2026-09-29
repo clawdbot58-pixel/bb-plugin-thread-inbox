@@ -13,17 +13,17 @@ by [Sawyer Hood](https://github.com/SawyerHood).
   move the active thread with `Alt+Up` / `Alt+Down`. Status changes do not shuffle cards.
 - **Follow delegated work.** Expand child threads beneath their parent, see
   descendant activity on the parent card, and jump between related threads from the header.
-- **Clear the inbox without archiving.** Snooze for 30 minutes, 2 hours, 1 day,
-  or 1 week, or settle a quiet thread into a collapsed shelf. Live descendant work
+- **Clear the inbox.** Snooze for 30 minutes, 2 hours, 1 day,
+  or 1 week, or archive a quiet thread into a collapsed shelf. Live descendant work
   prevents its parent from being parked.
-- **Triage from the keyboard or touch screen.** Settle the open thread with
-  `Ctrl+Alt+S`, including from the chat composer. Swipe a card left to settle or
+- **Triage from the keyboard or touch screen.** Archive the open thread with
+  `Ctrl+Alt+S`, including from the chat composer. Swipe a card left to archive or
   right to choose a snooze time.
 - **See repository context at a glance.** Cards show the project, branch,
   working-tree state, PR number and state, and provider mark. Git indicators
   distinguish clean, untracked, uncommitted, and unmerged work.
 - **Find and act on threads.** Filter by project, use BB sidebar search, rename
-  inline, and multi-select for bulk snooze, settle, or archive.
+  inline, and multi-select for bulk snooze or archive.
 - **Let quiet work step aside.** Enable an Inactive shelf with a configurable
   delay; new activity brings threads back. Pinned threads stay visible.
 
@@ -54,21 +54,21 @@ bb plugin update thread-inbox
   parent automatically.
 - Live descendant work prevents the parent from being parked.
 - Snooze offers presets for 30 minutes, 2 hours, 1 day, or 1 week.
-- Snoozed, settled, and inactive groups remain in compact collapsed shelves
+- Snoozed, archived, and inactive groups remain in compact collapsed shelves
   until opened.
 
-## Settle keyboard shortcut
+## Archive keyboard shortcut
 
 Press **Ctrl+Alt+S** (Mac: **Control+Option+S**, not Command) to
-settle the currently active/open thread. This targets that exact thread, not a
+archive the currently active/open thread. This targets that exact thread, not a
 hovered row, selected batch, or a child's parent, and works independently of
-project/search filtering while this sidebar is mounted. The active card's Settle
+project/search filtering while this sidebar is mounted. The active card's Archive
 button exposes the binding in its tooltip and `aria-keyshortcuts`.
 
-Only an unarchived thread on the active lifecycle shelf can be settled (including
+Only an unarchived thread on the active lifecycle shelf can be archived (including
 a quiet thread in the Inactive group). Running/working-draft threads, pending
 interactions, workflows, background agents/commands, plan mode, and goals block
-the action, including activity in descendants. Already snoozed/settled threads
+the action, including activity in descendants. Already snoozed/archived threads
 are left alone. Unread finished output alone does not block settling.
 
 The shortcut works while typing in BB's chat composer without submitting or
@@ -77,7 +77,7 @@ clearing the draft. This narrow exception recognizes BB's
 if BB changes that markup, it safely falls back to ignoring the editor.
 Other inputs, textareas, selects, contenteditable fields, file editors, terminals,
 menus and modal dialogs remain protected, as do handled events, IME composition,
-AltGraph, and held-key repeats. Duplicate requests are suppressed while a settle
+AltGraph, and held-key repeats. Duplicate requests are suppressed while an archive
 is pending; failures show a toast and permit retry.
 
 SDK 0.4.21 has no public shortcut contribution API, so this uses a cleaned-up,

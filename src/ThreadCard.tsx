@@ -294,7 +294,7 @@ export function ThreadCard({
           Math.abs(swipeOffset) < 72 && "opacity-50",
         )}>
           <Icon name={swipeOffset < 0 ? "Check" : "Clock"} className="size-4" />
-          {swipeOffset < 0 ? "Settle" : "Snooze"}
+          {swipeOffset < 0 ? "Archive" : "Snooze"}
         </div>
       ) : null}
       <RowContextMenu
@@ -371,7 +371,7 @@ export function ThreadCard({
                   onOpenChange={setSnoozeMenuOpen}
                   onSnooze={onSnooze}
                 />
-                <ParkButton label="Settle thread" icon="Check" onActivate={onSettle} shortcut={isActive} />
+                <ParkButton label="Archive thread" icon="Check" onActivate={onSettle} shortcut={isActive} />
               </span>
             ) : null}
             {isWoken ? (

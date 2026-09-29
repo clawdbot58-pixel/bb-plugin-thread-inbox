@@ -12,7 +12,7 @@ export default definePluginApp((app) => {
     id: "inbox",
     title: "Inbox Sidebar",
     description:
-      "Reorderable inbox cards with nested children, snooze, and settle controls.",
+      "Reorderable inbox cards with nested children, snooze, and archive controls.",
     component: ThreadInbox,
   });
 

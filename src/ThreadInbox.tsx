@@ -113,7 +113,7 @@ export function ThreadInbox({
       event.stopPropagation();
       settlingRef.current = true;
       void lifecycle.settle(thread.id)
-        .catch(() => { toast.error("Could not settle thread. Please try again."); })
+        .catch(() => { toast.error("Could not archive thread. Please try again."); })
         .finally(() => { settlingRef.current = false; });
     };
     document.addEventListener("keydown", onSettle);
@@ -682,7 +682,7 @@ export function ThreadInbox({
         {selectedThreads.length > 0 ? <div role="toolbar" aria-label={`${selectedThreads.length} threads selected`} className="flex h-7 min-w-0 flex-1 items-center gap-1">
           <span className="min-w-0 flex-1 truncate px-1 text-xs font-medium">{selectedThreads.length} selected</span>
           <button disabled={bulkBusy || parkableSelectedThreads.length === 0} onClick={() => void runBulk("snooze")} className="rounded px-1.5 py-1 text-xs hover:bg-sidebar-accent disabled:opacity-50">Snooze 30m</button>
-          <button disabled={bulkBusy || parkableSelectedThreads.length === 0} onClick={() => void runBulk("settle")} className="rounded px-1.5 py-1 text-xs hover:bg-sidebar-accent disabled:opacity-50">Settle</button>
+          <button disabled={bulkBusy || parkableSelectedThreads.length === 0} onClick={() => void runBulk("settle")} aria-label="Archive in place" className="rounded px-1.5 py-1 text-xs hover:bg-sidebar-accent disabled:opacity-50">Archive</button>
           <button disabled={bulkBusy} onClick={() => void runBulk("archive")} className="rounded px-1.5 py-1 text-xs hover:bg-sidebar-accent disabled:opacity-50">Archive</button>
           <button aria-label="Clear selection" disabled={bulkBusy} onClick={() => setSelection(EMPTY_THREAD_SELECTION)} className="rounded px-1.5 py-1 text-xs hover:bg-sidebar-accent disabled:opacity-50">×</button>
         </div> :
@@ -758,7 +758,7 @@ export function ThreadInbox({
               onNavigate={onNavigate}
             />
             <ParkedShelf
-              label="Settled"
+              label="Archived"
               threads={settled}
               expanded={showSettled}
               onToggle={() => setShowSettled((open) => !open)}
